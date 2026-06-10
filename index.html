@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Personal portfolio website with visitor counter and appreciation wall." />
+    <title>My Portfolio</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header" data-section="hero">
+      <nav class="nav container" aria-label="Primary navigation">
+        <a class="brand" href="#top">My Portfolio</a>
+        <ul class="nav-links">
+          <li><a href="#work">Work</a></li>
+          <li><a href="#skills">Skills</a></li>
+          <li><a href="#wall">Appreciation Wall</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero section container" data-section="hero">
+        <div>
+          <p class="eyebrow">Frontend Developer • Builder • Learner</p>
+          <h1>Hi, I’m building simple, useful web experiences.</h1>
+          <p class="lede">
+            This portfolio showcases projects, skills, and a small appreciation wall built with a static frontend and a Cloudflare Worker backend.
+          </p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#work">View Projects</a>
+            <a class="button button-secondary" href="#wall">Leave a Note</a>
+          </div>
+          <p class="meta">Visitor count: <strong id="visitor-count">--</strong></p>
+        </div>
+        <aside class="card spotlight" aria-label="Quick profile">
+          <h2>Current Focus</h2>
+          <p>Vanilla HTML, CSS, and JavaScript with a lightweight Worker API for small interactions.</p>
+          <ul>
+            <li>Static-first design</li>
+            <li>Accessible UI patterns</li>
+            <li>Fast, simple deployment</li>
+          </ul>
+        </aside>
+      </section>
+
+      <section class="section container" id="work" data-section="work">
+        <div class="section-heading">
+          <p class="eyebrow">Work</p>
+          <h2>Selected Projects</h2>
+          <p>Placeholder project cards for the portfolio.</p>
+        </div>
+
+        <div class="card-grid three-up">
+          <article class="card project-card">
+            <h3>Project One</h3>
+            <p>A small interface for simple data visualization and interactive UI design.</p>
+            <p class="tag-row"><span>HTML</span><span>CSS</span><span>JavaScript</span></p>
+          </article>
+
+          <article class="card project-card">
+            <h3>Project Two</h3>
+            <p>A lightweight dashboard concept focused on clarity, responsive layout, and accessibility.</p>
+            <p class="tag-row"><span>UX</span><span>Accessibility</span><span>Performance</span></p>
+          </article>
+
+          <article class="card project-card">
+            <h3>Project Three</h3>
+            <p>A personal tools page with reusable UI patterns and simple interactions.</p>
+            <p class="tag-row"><span>Vanilla JS</span><span>Static Hosting</span><span>Worker API</span></p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section container" id="skills" data-section="skills">
+        <div class="section-heading">
+          <p class="eyebrow">Skills</p>
+          <h2>What I Work With</h2>
+          <p>Core strengths for building lightweight, maintainable websites.</p>
+        </div>
+
+        <div class="card-grid two-up">
+          <article class="card">
+            <h3>Frontend</h3>
+            <ul>
+              <li>Semantic HTML5</li>
+              <li>Responsive CSS</li>
+              <li>Vanilla JavaScript</li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <h3>Backend & Deployment</h3>
+            <ul>
+              <li>Cloudflare Workers</li>
+              <li>KV storage</li>
+              <li>Static site hosting</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="section container" id="wall" data-section="appreciation-wall">
+        <div class="section-heading">
+          <p class="eyebrow">Appreciation Wall</p>
+          <h2>Leave a note</h2>
+          <p>Short, respectful messages are welcome here.</p>
+        </div>
+
+        <div class="wall-layout">
+          <form id="message-form" class="card form-card" novalidate>
+            <label for="message-text">Message</label>
+            <textarea id="message-text" name="text" rows="4" maxlength="280" placeholder="Write a kind note or appreciation..."></textarea>
+            <p class="hint">Maximum 280 characters. Keep it respectful and concise.</p>
+            <button class="button button-primary" type="submit">Post Message</button>
+            <p id="form-status" class="status" aria-live="polite"></p>
+          </form>
+
+          <aside class="card">
+            <h3>Recent Notes</h3>
+            <div id="message-list" class="message-list" aria-live="polite">
+              <article class="message-card">
+                <p>Placeholder note: Thanks for visiting my portfolio.</p>
+                <small>Just now</small>
+              </article>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer" data-section="footer">
+      <div class="container footer-row">
+        <p>© 2026 My Portfolio. Built with static HTML, CSS, and a Cloudflare Worker.</p>
+        <a href="#top">Back to top</a>
+      </div>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>
