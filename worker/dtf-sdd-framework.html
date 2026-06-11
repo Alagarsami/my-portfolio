@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DTF · SDD Framework</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Serif:wght@400;600&display=swap');
+
+  :root {
+    --ink:        #0D1117;
+    --ink-2:      #161B22;
+    --ink-3:      #21262D;
+    --border:     #30363D;
+    --muted:      #484F58;
+    --text-dim:   #8B949E;
+    --text:       #C9D1D9;
+    --text-hi:    #F0F6FC;
+    --gold:       #D4A017;
+    --gold-dim:   #7D5F0E;
+    --gold-glow:  rgba(212,160,23,0.15);
+    --green:      #3FB950;
+    --blue:       #58A6FF;
+    --red:        #F85149;
+    --purple:     #BC8CFF;
+    --cyan:       #39C5CF;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: var(--ink);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+    overflow: hidden;
+  }
+
+  /* ── LAYOUT ── */
+  .shell {
+    display: grid;
+    grid-template-rows: 48px 1fr;
+    grid-template-columns: 240px 1fr;
+    height: 100vh;
+  }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    grid-column: 1 / -1;
+    background: var(--ink-2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 16px;
+    z-index: 10;
+  }
+  .topbar-logo {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    color: var(--gold);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .topbar-logo .badge {
+    background: var(--gold);
+    color: var(--ink);
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 2px;
+    letter-spacing: 0.05em;
+  }
+  .topbar-sep { flex: 1; }
+  .topbar-meta {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    display: flex;
+    gap: 20px;
+  }
+  .topbar-meta span { display: flex; align-items: center; gap: 5px; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    background: var(--ink-2);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .sidebar-section {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+    padding: 0 14px 8px;
+  }
+
+  .product-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 14px;
+    cursor: pointer;
+    transition: background 0.12s;
+    border-left: 2px solid transparent;
+  }
+  .product-item:hover { background: var(--ink-3); }
+  .product-item.active {
+    background: var(--gold-glow);
+    border-left-color: var(--gold);
+  }
+  .product-item .pcode {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--gold);
+    background: rgba(212,160,23,0.12);
+    padding: 1px 5px;
+    border-radius: 2px;
+    min-width: 38px;
+    text-align: center;
+  }
+  .product-item.active .pcode { background: rgba(212,160,23,0.28); }
+  .product-name {
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.3;
+  }
+  .product-item.active .product-name { color: var(--text-hi); }
+
+  .borg-pill {
+    margin: 12px 14px;
+    background: rgba(188, 140, 255, 0.1);
+    border: 1px solid rgba(188, 140, 255, 0.3);
+    border-radius: 6px;
+    padding: 10px 12px;
+  }
+  .borg-pill .borg-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--purple);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .borg-pill p {
+    font-size: 10px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  /* ── MAIN ── */
+  .main {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── PIPELINE TABS ── */
+  .pipeline {
+    background: var(--ink-2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: stretch;
+    padding: 0 20px;
+    overflow-x: auto;
+    gap: 2px;
+  }
+  .pipeline::-webkit-scrollbar { height: 0; }
+
+  .step-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.12s;
+    white-space: nowrap;
+    position: relative;
+  }
+  .step-tab:hover { background: var(--ink-3); }
+  .step-tab.active {
+    border-bottom-color: var(--gold);
+    background: var(--gold-glow);
+  }
+  .step-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--muted);
+    background: var(--ink-3);
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .step-tab.active .step-num {
+    background: var(--gold);
+    color: var(--ink);
+  }
+  .step-tab.done .step-num {
+    background: var(--green);
+    color: var(--ink);
+  }
+  .step-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  .step-tab.active .step-name { color: var(--gold); }
+  .step-arrow {
+    color: var(--border);
+    font-size: 12px;
+    margin-left: 2px;
+    pointer-events: none;
+  }
+
+  /* ── EDITOR AREA ── */
+  .editor-area {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    overflow: hidden;
+  }
+
+  .editor-pane {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-right: 1px solid var(--border);
+  }
+
+  .editor-header {
+    background: var(--ink-3);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .file-tab {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+    background: var(--ink-2);
+    border: 1px solid var(--border);
+    border-radius: 4px 4px 0 0;
+    padding: 4px 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .file-tab .dot-lang { width: 7px; height: 7px; border-radius: 50%; background: var(--gold); }
+  .editor-path {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+  }
+  .copy-btn {
+    margin-left: auto;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    background: var(--ink-3);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 3px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+  .copy-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .copy-btn.copied { border-color: var(--green); color: var(--green); }
+
+  .editor-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 24px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    line-height: 1.8;
+  }
+  .editor-body::-webkit-scrollbar { width: 6px; }
+  .editor-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* Markdown rendering */
+  .md-h1 { font-family: 'IBM Plex Serif', serif; font-size: 18px; font-weight: 600; color: var(--text-hi); margin: 0 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .md-h2 { font-size: 13px; font-weight: 600; color: var(--blue); margin: 20px 0 8px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .md-h3 { font-size: 12px; font-weight: 600; color: var(--gold); margin: 14px 0 6px; }
+  .md-p { font-family: 'IBM Plex Sans', sans-serif; font-size: 12px; color: var(--text); margin-bottom: 8px; line-height: 1.7; }
+  .md-rule { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+  .md-ul { padding-left: 16px; margin-bottom: 10px; }
+  .md-ul li { font-family: 'IBM Plex Sans', sans-serif; font-size: 12px; color: var(--text); margin-bottom: 4px; line-height: 1.6; }
+  .md-ul li::marker { color: var(--gold); }
+  .md-code { background: var(--ink-3); border: 1px solid var(--border); border-radius: 4px; padding: 10px 14px; margin: 8px 0; font-size: 11px; color: var(--cyan); overflow-x: auto; white-space: pre; }
+  .md-inline { background: rgba(255,255,255,0.07); border-radius: 3px; padding: 1px 5px; color: var(--cyan); font-size: 11px; }
+  .md-badge { display: inline-block; font-size: 9px; font-weight: 700; padding: 1px 7px; border-radius: 10px; margin-right: 5px; letter-spacing: 0.05em; }
+  .badge-ucp { background: rgba(188,140,255,0.18); color: var(--purple); border: 1px solid rgba(188,140,255,0.3); }
+  .badge-tech { background: rgba(88,166,255,0.18); color: var(--blue); border: 1px solid rgba(88,166,255,0.3); }
+  .badge-swift { background: rgba(63,185,80,0.18); color: var(--green); border: 1px solid rgba(63,185,80,0.3); }
+  .badge-risk { background: rgba(248,81,73,0.18); color: var(--red); border: 1px solid rgba(248,81,73,0.3); }
+
+  /* ── META PANEL ── */
+  .meta-panel {
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .meta-panel::-webkit-scrollbar { width: 4px; }
+  .meta-panel::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .meta-block {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .meta-block-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .ucp-ref {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .ucp-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 5px 8px;
+    background: var(--ink-3);
+    border-radius: 4px;
+  }
+  .ucp-art {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--purple);
+    white-space: nowrap;
+    min-width: 46px;
+  }
+  .ucp-desc {
+    font-size: 10px;
+    color: var(--text-dim);
+    line-height: 1.4;
+  }
+
+  .agent-prompt {
+    background: var(--ink-3);
+    border: 1px solid rgba(88,166,255,0.3);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--blue);
+    line-height: 1.6;
+  }
+  .agent-prompt-label {
+    font-size: 9px;
+    color: var(--muted);
+    margin-bottom: 5px;
+  }
+
+  .progress-wrap { display: flex; flex-direction: column; gap: 6px; }
+  .prog-row { display: flex; align-items: center; gap: 8px; }
+  .prog-label { font-size: 10px; color: var(--text-dim); width: 80px; }
+  .prog-bar-bg { flex: 1; height: 4px; background: var(--ink-3); border-radius: 2px; }
+  .prog-bar { height: 4px; border-radius: 2px; background: var(--gold); }
+  .prog-val { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--muted); width: 28px; text-align: right; }
+
+  .swift-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(63,185,80,0.1);
+    border: 1px solid rgba(63,185,80,0.3);
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--green);
+    margin: 2px;
+  }
+
+  .flow-step {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    padding: 5px 0;
+  }
+  .flow-num {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--ink-3);
+    border: 1px solid var(--border);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .flow-text { font-size: 11px; color: var(--text-dim); line-height: 1.4; }
+
+  .generate-btn {
+    margin: 14px 16px;
+    background: linear-gradient(135deg, var(--gold-dim), rgba(212,160,23,0.7));
+    border: 1px solid var(--gold);
+    border-radius: 6px;
+    color: var(--ink);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 10px 16px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    text-transform: uppercase;
+  }
+  .generate-btn:hover {
+    background: linear-gradient(135deg, var(--gold), rgba(212,160,23,0.9));
+    box-shadow: 0 0 16px var(--gold-glow);
+  }
+
+  /* Status bar */
+  .statusbar {
+    grid-column: 1 / -1;
+    background: var(--gold);
+    height: 20px;
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    gap: 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: 0.06em;
+  }
+  .statusbar span { opacity: 0.7; }
+  .statusbar .hi { opacity: 1; }
+
+  /* Tooltip */
+  [data-tip] { position: relative; }
+  [data-tip]:hover::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink-3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0;
+    white-space: nowrap;
+    padding: 4px 8px;
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 100;
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-logo">
+      <span>DTF · SDD</span>
+      <span class="badge">UCP 600</span>
+    </div>
+    <div class="topbar-sep"></div>
+    <div class="topbar-meta">
+      <span><span class="dot"></span>Borg Active</span>
+      <span>Spec-Driven Development Framework</span>
+      <span>v1.0 · ICC UCP 600 / URDG 758</span>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Letters of Credit</div>
+      <div class="product-item active" onclick="selectProduct('ILC')" data-product="ILC">
+        <span class="pcode">ILC</span>
+        <span class="product-name">Import Letter of Credit</span>
+      </div>
+      <div class="product-item" onclick="selectProduct('ELC')" data-product="ELC">
+        <span class="pcode">ELC</span>
+        <span class="product-name">Export Letter of Credit</span>
+      </div>
+      <div class="product-item" onclick="selectProduct('SLC')" data-product="SLC">
+        <span class="pcode">SLC</span>
+        <span class="product-name">Standby LC (SBLC)</span>
+      </div>
+      <div class="product-item" onclick="selectProduct('TLC')" data-product="TLC">
+        <span class="pcode">TLC</span>
+        <span class="product-name">Transferable LC</span>
+      </div>
+      <div class="product-item" onclick="selectProduct('RLC')" data-product="RLC">
+        <span class="pcode">RLC</span>
+        <span class="product-name">Revolving LC</span>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Documentary Collections</div>
+      <div class="product-item" onclick="selectProduct('DPD')" data-product="DPD">
+        <span class="pcode">D/P</span>
+        <span class="product-name">Documents Against Payment</span>
+      </div>
+      <div class="product-item" onclick="selectProduct('DAD')" data-product="DAD">
+        <span class="pcode">D/A</span>
+        <span class="product-name">Documents Against Acceptance</span>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Bank Guarantees</div>
+      <div class="product-item" onclick="selectProduct('BG')" data-product="BG">
+        <span class="pcode">BG</span>
+        <span class="product-name">Bank Guarantee</span>
+      </div>
+      <div class="product-item" onclick="selectProduct('PB')" data-product="PB">
+        <span class="pcode">PB</span>
+        <span class="product-name">Performance Bond</span>
+      </div>
+      <div class="product-item" onclick="selectProduct('ABG')" data-product="ABG">
+        <span class="pcode">ABG</span>
+        <span class="product-name">Advance Payment Guarantee</span>
+      </div>
+    </div>
+    <div class="borg-pill">
+      <div class="borg-title">⬡ Borg Knowledge Base</div>
+      <p>UCP 600 · URDG 758 · URC 522 · ISP98 · eUCP 2.0 · SWIFT MT7xx</p>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <!-- Pipeline tabs -->
+    <div class="pipeline" id="pipeline">
+      <div class="step-tab done" onclick="selectStep(0)" id="step-0">
+        <span class="step-num">✓</span>
+        <span class="step-name">constitution.md</span>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-tab active" onclick="selectStep(1)" id="step-1">
+        <span class="step-num">2</span>
+        <span class="step-name">specify.md</span>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-tab" onclick="selectStep(2)" id="step-2">
+        <span class="step-num">3</span>
+        <span class="step-name">clarify.md</span>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-tab" onclick="selectStep(3)" id="step-3">
+        <span class="step-num">4</span>
+        <span class="step-name">plan.md</span>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-tab" onclick="selectStep(4)" id="step-4">
+        <span class="step-num">5</span>
+        <span class="step-name">tasks.md</span>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-tab" onclick="selectStep(5)" id="step-5">
+        <span class="step-num">6</span>
+        <span class="step-name">implement.md</span>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-tab" onclick="selectStep(6)" id="step-6">
+        <span class="step-num">7</span>
+        <span class="step-name">checklist.md</span>
+      </div>
+    </div>
+
+    <!-- Editor + Meta -->
+    <div class="editor-area">
+
+      <div class="editor-pane">
+        <div class="editor-header">
+          <div class="file-tab"><span class="dot-lang"></span><span id="file-tab-name">specify.md</span></div>
+          <div class="editor-path" id="editor-path">.docs/ILC/specify.md</div>
+          <button class="copy-btn" id="copy-btn" onclick="copyContent()">Copy</button>
+        </div>
+        <div class="editor-body" id="editor-body">
+          <!-- Content rendered here -->
+        </div>
+      </div>
+
+      <div class="meta-panel" id="meta-panel">
+        <!-- Dynamic meta content -->
+      </div>
+
+    </div>
+
+    <!-- Status bar -->
+    <div class="statusbar">
+      <span class="hi" id="status-product">ILC · Import Letter of Credit</span>
+      <span id="status-step">specify.md</span>
+      <span>UCP 600 Compliant</span>
+      <span id="status-articles"></span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ────────────────────────────────────────────────────────────
+//  DATA
+// ────────────────────────────────────────────────────────────
+const PRODUCTS = {
+  ILC: {
+    name: "Import Letter of Credit",
+    code: "ILC",
+    rules: "UCP 600",
+    swift: ["MT700", "MT705", "MT710", "MT730", "MT734", "MT750", "MT752", "MT799"],
+    articles: ["Art. 2 – Definitions", "Art. 6 – Availability", "Art. 14 – Document Examination", "Art. 16 – Discrepant Documents"],
+    ucp: [
+      { art: "Art. 2", desc: "Definitions of LC, issuing bank, nominated bank, presenter" },
+      { art: "Art. 6", desc: "Availability, expiry date and place; sight vs usance terms" },
+      { art: "Art. 14", desc: "5-banking-day standard for document examination" },
+      { art: "Art. 16", desc: "Discrepant documents — notice and refusal obligations" },
+      { art: "Art. 18", desc: "Commercial Invoice requirements and tolerances" },
+      { art: "Art. 20", desc: "Bill of Lading — on-board notation, consignee, notify party" },
+    ],
+    flow: ["Applicant submits LC application", "Issuing Bank opens LC (MT700)", "Advising Bank notifies beneficiary", "Beneficiary ships goods & presents docs", "Nominated Bank examines documents (5-day rule)", "Payment / acceptance / negotiation"],
+    progress: { spec: 85, arch: 60, impl: 30, test: 15 },
+    agentPrompt: `You are a DTF Java architect.\nRules: UCP 600 mandatory.\nBuild: ImportLC microservice\nSwift: MT700 inbound parser\nValidate: Art.14 doc examination\nOutput: OpenAPI spec + entity model`,
+  },
+  ELC: {
+    name: "Export Letter of Credit",
+    code: "ELC",
+    rules: "UCP 600",
+    swift: ["MT710", "MT711", "MT720", "MT730", "MT742", "MT750", "MT752"],
+    articles: ["Art. 9 – Advising", "Art. 12 – Nomination", "Art. 14 – Examination", "Art. 37 – Charges"],
+    ucp: [
+      { art: "Art. 9", desc: "Advising bank obligations; authentication of LC" },
+      { art: "Art. 12", desc: "Nomination of bank; honour and negotiation authority" },
+      { art: "Art. 14", desc: "5-banking-day standard; complying presentation" },
+      { art: "Art. 37", desc: "Charges — who bears bank fees and commissions" },
+      { art: "Art. 38", desc: "Transferable LC rules (when export LC is transferable)" },
+    ],
+    flow: ["Receive MT710/720 from issuing bank", "Authenticate and advise beneficiary", "Beneficiary prepares complying documents", "Submit documents to nominated bank", "Examination against LC terms", "Negotiation / deferred payment claim"],
+    progress: { spec: 75, arch: 55, impl: 25, test: 10 },
+    agentPrompt: `You are a DTF Java architect.\nRules: UCP 600 mandatory.\nBuild: ExportLC microservice\nSwift: MT710 inbound, MT742 reimbursement\nValidate: Art.12 nomination flow\nOutput: OpenAPI spec + domain events`,
+  },
+  SLC: {
+    name: "Standby Letter of Credit",
+    code: "SLC",
+    rules: "ISP98 / UCP 600",
+    swift: ["MT760", "MT767", "MT768", "MT769", "MT799"],
+    articles: ["ISP98 Rule 1.06", "ISP98 Rule 2.01", "ISP98 Rule 3.14", "UCP Art. 2"],
+    ucp: [
+      { art: "ISP98 1.06", desc: "Independence: SBLC independent of underlying transaction" },
+      { art: "ISP98 2.01", desc: "Demand presentation requirements for SBLC draw" },
+      { art: "ISP98 3.14", desc: "Extend-or-pay: evergreen clause handling" },
+      { art: "UCP Art. 2", desc: "SBLC treated as LC when ISP98 not applicable" },
+      { art: "ISP98 9.01", desc: "Expiry — time, place, and automatic expiry rules" },
+    ],
+    flow: ["Issue SBLC on applicant instruction (MT760)", "Advise / confirm to beneficiary", "Monitor for draw / extend-or-pay notice", "Receive complying demand presentation", "Honour within stipulated time", "Reduce / cancel on expiry"],
+    progress: { spec: 70, arch: 50, impl: 20, test: 8 },
+    agentPrompt: `You are a DTF Java architect.\nRules: ISP98 primary, UCP 600 fallback.\nBuild: StandbyLC microservice\nSwift: MT760 issuance, MT767 amendment\nValidate: Demand presentation logic\nOutput: OpenAPI + state-machine model`,
+  },
+  TLC: {
+    name: "Transferable Letter of Credit",
+    code: "TLC",
+    rules: "UCP 600 Art. 38",
+    swift: ["MT700", "MT720", "MT730"],
+    articles: ["Art. 38 – Transferable LC", "Art. 38(b) – Transfer conditions", "Art. 38(g) – Substitution of docs", "Art. 38(k) – Second beneficiary"],
+    ucp: [
+      { art: "Art. 38(a)", desc: "Only expressly marked 'transferable' LCs may be transferred" },
+      { art: "Art. 38(b)", desc: "Transferring bank is not obligated to effect transfer" },
+      { art: "Art. 38(d)", desc: "Transfer only once; second beneficiary cannot re-transfer" },
+      { art: "Art. 38(g)", desc: "First beneficiary substitutes own invoice/draft" },
+      { art: "Art. 38(k)", desc: "Second beneficiary presents directly to transferring bank" },
+    ],
+    flow: ["Issuing bank opens transferable LC", "First beneficiary requests partial transfer", "Transferring bank issues transferred LC", "Second beneficiary ships and presents docs", "Substitution of invoice by first beneficiary", "Transferring bank remits to issuing bank"],
+    progress: { spec: 65, arch: 45, impl: 15, test: 5 },
+    agentPrompt: `You are a DTF Java architect.\nRules: UCP 600 Art.38 strictly.\nBuild: TransferableLC microservice\nLogic: Partial transfer splits + invoice substitution\nSwift: MT720 for transfer\nOutput: Entity graph + transfer-state machine`,
+  },
+  RLC: {
+    name: "Revolving Letter of Credit",
+    code: "RLC",
+    rules: "UCP 600",
+    swift: ["MT700", "MT707"],
+    articles: ["Art. 6 – Amount tolerance", "Art. 30 – Tolerance in credit amount", "Art. 32 – Instalment drawings"],
+    ucp: [
+      { art: "Art. 6", desc: "Availability terms — how many times LC revolves" },
+      { art: "Art. 30", desc: "10% tolerance in amount and quantity (unless prohibited)" },
+      { art: "Art. 32", desc: "Instalment drawing schedule; failure forfeits future tranches" },
+      { art: "Art. 29", desc: "Expiry date extension when bank is closed on expiry day" },
+    ],
+    flow: ["Issue revolving LC with cumulative / non-cumulative flag", "First drawing presentation and payment", "Auto-reinstatement triggers (time-based / value-based)", "Monitor cumulative utilisation vs. total cap", "Amendment for reinstatement modification (MT707)", "Final expiry and cancellation"],
+    progress: { spec: 60, arch: 40, impl: 12, test: 5 },
+    agentPrompt: `You are a DTF Java architect.\nRules: UCP 600, revolving logic.\nBuild: RevolvingLC microservice\nLogic: Reinstatement scheduler (cumulative vs. non-cumulative)\nSwift: MT707 amendment\nOutput: Scheduler config + domain events`,
+  },
+  DPD: {
+    name: "Documents Against Payment (D/P)",
+    code: "DPD",
+    rules: "URC 522",
+    swift: ["MT400", "MT410", "MT412", "MT416", "MT420", "MT422"],
+    articles: ["URC 522 Art. 1", "URC 522 Art. 7", "URC 522 Art. 26"],
+    ucp: [
+      { art: "URC 522 Art.1", desc: "Scope — applies to all documentary collections" },
+      { art: "URC 522 Art.7", desc: "Presenting bank releases docs only against payment" },
+      { art: "URC 522 Art.14", desc: "Interest and charges — non-waiver by banks" },
+      { art: "URC 522 Art.26", desc: "Protest / case-of-need instructions" },
+    ],
+    flow: ["Exporter ships goods; hands docs to remitting bank", "Remitting bank sends collection order (MT400)", "Presenting bank contacts drawee (importer)", "Drawee makes payment (sight basis)", "Presenting bank releases original documents", "Remitting bank credits exporter"],
+    progress: { spec: 78, arch: 58, impl: 28, test: 12 },
+    agentPrompt: `You are a DTF Java architect.\nRules: URC 522 mandatory.\nBuild: DocumentaryCollection D/P microservice\nSwift: MT400 collection order inbound\nLogic: Doc release only on confirmed payment\nOutput: OpenAPI + collection state machine`,
+  },
+  DAD: {
+    name: "Documents Against Acceptance (D/A)",
+    code: "DAD",
+    rules: "URC 522",
+    swift: ["MT400", "MT410", "MT412", "MT416", "MT420", "MT422", "MT450"],
+    articles: ["URC 522 Art. 7", "URC 522 Art. 9", "URC 522 Art. 26"],
+    ucp: [
+      { art: "URC 522 Art.7", desc: "D/A: docs released upon acceptance of term bill of exchange" },
+      { art: "URC 522 Art.9", desc: "Goods arriving before documents — warehousing risk" },
+      { art: "URC 522 Art.25", desc: "Aval / guarantee on accepted bill of exchange" },
+      { art: "URC 522 Art.26", desc: "Case of need and protest instructions" },
+    ],
+    flow: ["Exporter ships goods; presents time draft + docs to remitting bank", "MT400 collection instruction to presenting bank", "Presenting bank obtains drawee's acceptance on draft", "Original documents released to drawee (importer)", "Draft held until maturity date", "Collect payment at maturity; remit to remitting bank"],
+    progress: { spec: 72, arch: 52, impl: 22, test: 8 },
+    agentPrompt: `You are a DTF Java architect.\nRules: URC 522 strictly.\nBuild: DocumentaryCollection D/A microservice\nLogic: Acceptance workflow + bill of exchange maturity scheduler\nSwift: MT450 acceptance advice\nOutput: Domain model + maturity event scheduler`,
+  },
+  BG: {
+    name: "Bank Guarantee",
+    code: "BG",
+    rules: "URDG 758",
+    swift: ["MT760", "MT767", "MT768", "MT769", "MT786"],
+    articles: ["URDG 758 Art. 2", "URDG 758 Art. 14", "URDG 758 Art. 15", "URDG 758 Art. 19"],
+    ucp: [
+      { art: "URDG 758 Art.2", desc: "Definitions: demand guarantee, counter-guarantee, principal" },
+      { art: "URDG 758 Art.14", desc: "Presentation of demand — must be complying" },
+      { art: "URDG 758 Art.15", desc: "Examination: 5-business-day standard for demand review" },
+      { art: "URDG 758 Art.19", desc: "Extend-or-pay: how to handle expiry extension requests" },
+      { art: "URDG 758 Art.25", desc: "Force majeure and suspension of guarantee" },
+    ],
+    flow: ["Principal requests BG from issuing bank", "Issuing bank issues BG (MT760)", "BG delivered to beneficiary (advising bank if needed)", "Beneficiary presents demand on default of principal", "Bank examines demand (5-business-day rule)", "Payment or refusal; counter-guarantee reimbursement"],
+    progress: { spec: 80, arch: 62, impl: 32, test: 18 },
+    agentPrompt: `You are a DTF Java architect.\nRules: URDG 758 primary.\nBuild: BankGuarantee microservice\nSwift: MT760 issuance, MT786 demand\nLogic: Extend-or-pay scheduler + demand examination\nOutput: OpenAPI + guarantee lifecycle FSM`,
+  },
+  PB: {
+    name: "Performance Bond",
+    code: "PB",
+    rules: "URDG 758",
+    swift: ["MT760", "MT767", "MT769"],
+    articles: ["URDG 758 Art. 2", "URDG 758 Art. 14", "URDG 758 Art. 22"],
+    ucp: [
+      { art: "URDG 758 Art.2", desc: "Performance guarantee: demand guarantee securing contract performance" },
+      { art: "URDG 758 Art.14", desc: "Demand must state the respect in which principal is in default" },
+      { art: "URDG 758 Art.22", desc: "Partial demand allowed unless guarantee prohibits it" },
+      { art: "URDG 758 Art.23", desc: "Reduction: guarantee amount decreases as milestones met" },
+    ],
+    flow: ["Contractor (principal) requests Performance Bond", "Issuing bank issues bond against contract milestones", "Project milestones trigger partial releases (MT767 amendment)", "Employer (beneficiary) may call bond on default", "Bank examines demand; pays if complying", "Bond expires on practical completion + retention period"],
+    progress: { spec: 68, arch: 48, impl: 18, test: 6 },
+    agentPrompt: `You are a DTF Java architect.\nRules: URDG 758.\nBuild: PerformanceBond microservice\nLogic: Milestone-based reduction engine\nSwift: MT767 for amount reduction\nOutput: Milestone scheduler + bond FSM`,
+  },
+  ABG: {
+    name: "Advance Payment Guarantee",
+    code: "ABG",
+    rules: "URDG 758",
+    swift: ["MT760", "MT767", "MT769"],
+    articles: ["URDG 758 Art. 2", "URDG 758 Art. 14", "URDG 758 Art. 22"],
+    ucp: [
+      { art: "URDG 758 Art.2", desc: "APG: guarantees return of advance if principal fails to perform" },
+      { art: "URDG 758 Art.22", desc: "Auto-reduction as advance is repaid via deliveries" },
+      { art: "URDG 758 Art.14", desc: "Demand must specify amount and basis for call" },
+      { art: "URDG 758 Art.19", desc: "Extend-or-pay when contract period is extended" },
+    ],
+    flow: ["Buyer pays advance to seller (triggers APG requirement)", "Issuing bank issues APG (MT760)", "APG amount reduces as partial deliveries are made", "Automatic reduction notifications (MT767)", "Seller defaults: buyer calls APG with complying demand", "Issuing bank reimburses buyer; seeks counter-guarantee recovery"],
+    progress: { spec: 65, arch: 45, impl: 15, test: 5 },
+    agentPrompt: `You are a DTF Java architect.\nRules: URDG 758.\nBuild: AdvancePaymentGuarantee microservice\nLogic: Delivery-linked auto-reduction engine\nSwift: MT767 reduction advice\nOutput: Reduction schedule model + domain events`,
+  },
+};
+
+const STEPS = [
+  { id: 0, file: "constitution.md", short: "constitution.md" },
+  { id: 1, file: "specify.md",      short: "specify.md" },
+  { id: 2, file: "clarify.md",      short: "clarify.md" },
+  { id: 3, file: "plan.md",         short: "plan.md" },
+  { id: 4, file: "tasks.md",        short: "tasks.md" },
+  { id: 5, file: "implement.md",    short: "implement.md" },
+  { id: 6, file: "checklist.md",    short: "checklist.md" },
+];
+
+let currentProduct = "ILC";
+let currentStep = 1;
+
+// ────────────────────────────────────────────────────────────
+//  CONTENT GENERATORS
+// ────────────────────────────────────────────────────────────
+function genConstitution(p) {
+  return `<div class="md-h1">constitution.md — Global Borg Knowledge Base</div>
+<div class="md-p"><span class="md-badge badge-ucp">IMMUTABLE</span> Universal rules applied to ALL DTF products. Never override in lower-level specs.</div>
+<hr class="md-rule"/>
+<div class="md-h2">§1 · Regulatory Borg — ICC Rules</div>
+<ul class="md-ul">
+  <li><span class="md-inline">UCP 600</span> — Uniform Customs and Practice for Documentary Credits (2007 revision)</li>
+  <li><span class="md-inline">ISBP 745</span> — International Standard Banking Practice for examining documents and resolving discrepancies</li>
+  <li><span class="md-inline">URDG 758</span> — Uniform Rules for Demand Guarantees (ICC Publication 758)</li>
+  <li><span class="md-inline">URC 522</span> — Uniform Rules for Collections (ICC Publication 522)</li>
+  <li><span class="md-inline">ISP98</span> — International Standby Practices (ICC Publication 590)</li>
+  <li><span class="md-inline">eUCP 2.1</span> — Electronic presentation extension for UCP 600 and digital document workflows</li>
+  <li><span class="md-inline">Enterprise addendum</span> — The AI must never contradict these rules and must treat ISBP 745 and eUCP 2.1 as mandatory logic for documentary examination and electronic records.</li>
+</ul>
+<div class="md-h2">§2 · Technology Architecture Borg</div>
+<div class="md-code">language: Java 21
+framework: Spring Boot 3.5
+persistence: Spring Data JPA + Hibernate (jakarta.*)
+messaging: Apache Kafka (domain events)
+api: OpenAPI 3.1 (contract-first)
+security: OAuth2 / mTLS for SWIFT connectivity, JWT claim validation, and RBAC enforcement
+testing: JUnit 5 + Testcontainers + Cucumber/Gherkin for compliance scenarios
+migration: Flyway (versioned SQL scripts only)
+standards: ISO 20022 MX canonical model internally; MT formats mapped via anti-corruption adapters
+trade_terms: Incoterms® 2020 lookup/validation modules mandatory
+legal_docs: UNCITRAL MLETR and DCSA-aligned eBL interoperability rules
+enterprise_note: Banks deal in documents; OCR extractions and AML screening are mandatory inputs to the examination workflow</div>
+<div class="md-h2">§3 · Non-Negotiable Constraints</div>
+<ul class="md-ul">
+  <li>Every document examination service MUST enforce the 5-banking-day rule (UCP 600 Art. 14 / URDG 758 Art. 15)</li>
+  <li>All LC / Guarantee states must be modelled as explicit finite-state machines</li>
+  <li>SWIFT message parsing/generation is mandatory for all bank-to-bank communication</li>
+  <li>All monetary amounts stored as <span class="md-inline">BigDecimal</span> with ISO 4217 currency code</li>
+  <li>Audit trail: every state transition logged with timestamp, user, and source message reference</li>
+  <li>Discrepancy waiver requests must be independently authorised (4-eyes principle)</li>
+  <li>Observability is mandatory: use OpenTelemetry or Micrometer, emit trace IDs, and propagate them through Kafka headers and REST calls for end-to-end debugging across multi-day DTF flows.</li>
+  <li>Identity and entitlement checks are mandatory: validate JWT claims and RBAC roles such as <span class="md-inline">bank-teller</span> vs. <span class="md-inline">trade-finance-manager</span>, and enforce tenant-aware access controls for every REST endpoint.</li>
+  <li>External integration boundaries must use anti-corruption layers for Core Banking, AML/KYC screening, and SWIFT gateway calls; never bypass the boundary with direct coupling to legacy systems.</li>
+  <li>Sanctions and AML screening are hard blocking gates before any state transition, outbound message, or payment/acceptance obligation is allowed.</li>
+  <li>All document, MT/MX message, and human intervention events must be immutable, event-sourced, and timestamped for forensic auditability.</li>
+  <li>Digitized trade documents and OCR extractions must be validated against credit terms, Incoterms® 2020 logic, and eBL interoperability rules before acceptance.</li>
+  <li>Workflow engine: all issuance, amendment, presentation, discrepancy, and settlement moves must be governed by a configurable FSM.</li>
+</ul>
+<div class="md-h2">§4 · Domain Glossary (mandatory across all services)</div>
+<div class="md-code">Applicant        → party instructing the bank to open LC/Guarantee
+Beneficiary      → party in whose favour LC/Guarantee is issued
+Issuing Bank     → bank that opens the LC/Guarantee
+Advising Bank    → bank that authenticates and advises the credit
+Nominated Bank   → bank authorised to honour or negotiate
+Confirming Bank  → bank adding its own payment undertaking
+Remitting Bank   → bank handling collection instruction (URC 522)
+Presenting Bank  → bank presenting documents to drawee</div>
+<div class="md-h2">§5 · Microservice Boundary Rules</div>
+<ul class="md-ul">
+  <li>One microservice per DTF product family (LC, Collection, Guarantee)</li>
+  <li>Shared kernel for: document examination engine, SWIFT adapter, audit service</li>
+  <li>No direct DB joins across service boundaries — use domain events</li>
+  <li>Each service owns its schema; cross-service reads via API only</li>
+</ul>`;
+}
+
+function genSpecify(p) {
+  const prod = PRODUCTS[p];
+  return `<div class="md-h1">specify.md — ${prod.name}</div>
+<div class="md-p"><span class="md-badge badge-ucp">UCP</span><span class="md-badge badge-swift">SWIFT</span> Product specification for <strong style="color:var(--text-hi)">${prod.code}</strong>. AI agent must ingest this before generating any code.</div>
+<hr class="md-rule"/>
+<div class="md-h2">§1 · Product Identity</div>
+<div class="md-code">product_code:   ${prod.code}
+product_name:   ${prod.name}
+governing_rules: ${prod.rules}
+swift_messages: [${prod.swift.join(", ")}]</div>
+<div class="md-h2">§2 · Business Requirements</div>
+<div class="md-h3">2.1 Core Lifecycle States</div>
+<ul class="md-ul">
+  ${prod.flow.map((f, i) => `<li><span class="md-inline">STATE_${String(i+1).padStart(2,'0')}</span> ${f}</li>`).join('')}
+</ul>
+<div class="md-h3">2.2 Governing Rule References</div>
+<ul class="md-ul">
+  ${prod.ucp.map(u => `<li><span class="md-badge badge-ucp">${u.art}</span>${u.desc}</li>`).join('')}
+</ul>
+<div class="md-h2">§3 · SWIFT Message Matrix</div>
+<div class="md-code">${prod.swift.map(s => `${s.padEnd(6)} → ${getSwiftDesc(s)}`).join('\n')}</div>
+<div class="md-h2">§4 · Data Model Requirements</div>
+<div class="md-code">@Entity
+public class ${prod.code}Transaction {
+    private String referenceNumber;      // Unique LC/Guarantee reference
+    private String applicantId;          // FK to Party service
+    private String beneficiaryId;        // FK to Party service
+    private BigDecimal amount;           // ISO 4217
+    private String currencyCode;
+    private LocalDate expiryDate;
+    private String expiryPlace;
+    private ${prod.code}Status status;   // FSM-controlled
+    private List<Document> documents;    // Presented documents
+    private List<Discrepancy> discrepancies; // Art. 16 notices
+    private LocalDateTime lastModified;
+    private String lastModifiedBy;       // Audit trail
+}</div>
+<div class="md-h2">§5 · Compliance Acceptance Criteria</div>
+<ul class="md-ul">
+  <li>Document examination must reject non-complying presentations within 5 banking days</li>
+  <li>All ${prod.rules} mandatory fields validated on issuance</li>
+  <li>State transitions must be atomic and idempotent</li>
+  <li>SWIFT messages must be validated against ISO 15022 schemas before send</li>
+  <li>System must support inbound/outbound SWIFT MT and map them to the internal ISO 20022 data dictionary.</li>
+  <li>Applicant and beneficiary data must be routed through sanctions screening, and vessel IMO numbers extracted from bills of lading must be checked against sanctioned dual-use and vessel lists.</li>
+  <li>Incoterms® 2020 validation must verify insurance and risk-transfer requirements for CIF/CIP presentations.</li>
+  <li>NFRs: API p95 latency under 200 ms for standard operations, throughput sized for peak SWIFT and Kafka traffic, and data residency rules enforced for cross-border trade documents.</li>
+  <li>Alternate flows must cover force majeure, SWIFT NACK handling, sanctions hits, and retry-after conditions for downstream dependencies.</li>
+</ul>`;
+}
+
+function genClarify(p) {
+  const prod = PRODUCTS[p];
+  return `<div class="md-h1">clarify.md — Open Questions for ${prod.name}</div>
+<div class="md-p"><span class="md-badge badge-tech">AI AGENT</span> These ambiguities must be resolved before plan.md is generated. Review with business owner.</div>
+<hr class="md-rule"/>
+<div class="md-h2">§1 · Business Clarifications</div>
+<ul class="md-ul">
+  <li><strong style="color:var(--gold)">Q1</strong> — What is the maximum LC/Guarantee amount the system must support? (affects BigDecimal precision)</li>
+  <li><strong style="color:var(--gold)">Q2</strong> — Are partial drawings/demands supported for ${prod.code}? (impacts FSM design)</li>
+  <li><strong style="color:var(--gold)">Q3</strong> — Which currencies are in scope? USD/EUR/SGD or multi-currency from the start?</li>
+  <li><strong style="color:var(--gold)">Q4</strong> — Must the system support <span class="md-inline">eUCP 2.0</span> for electronic document presentations?</li>
+  <li><strong style="color:var(--gold)">Q5</strong> — Is a customer portal (self-service) in scope, or is this bank-staff only?</li>
+</ul>
+<div class="md-h2">§2 · Technical Clarifications</div>
+<ul class="md-ul">
+  <li><strong style="color:var(--blue)">T1</strong> — SWIFT connectivity: Alliance Access, Alliance Lite2, or third-party SWIFT gateway?</li>
+  <li><strong style="color:var(--blue)">T2</strong> — Document storage: blob store (Azure Blob / S3) or document management system?</li>
+  <li><strong style="color:var(--blue)">T3</strong> — Will ${prod.code} integrate with existing Core Banking for account debit/credit?</li>
+  <li><strong style="color:var(--blue)">T4</strong> — Is sanctions screening (OFAC/UN/EU) a pre-condition before issuance?</li>
+  <li><strong style="color:var(--blue)">T5</strong> — Expected peak TPS for SWIFT message processing?</li>
+  <li><strong style="color:var(--gold)">Q6 (OCR)</strong> — What confidence threshold is acceptable for OCR extraction before human-in-the-loop exception handling?</li>
+  <li><strong style="color:var(--gold)">Q7 (AML)</strong> — Which sanctions provider and timeout/SLA are required for realtime AML checks?</li>
+  <li><strong style="color:var(--gold)">Q8 (eBL)</strong> — Which DCSA-compliant platform is used for eUCP 2.1 / eBL integration?</li>
+  <li><strong style="color:var(--red)">HALT</strong> — If any requirement conflicts with UCP 600 / ISBP 745, or any required SWIFT MT / ISO 20022 field is missing from the data model, stop generation immediately and append the conflict to this file before any code is produced.</li>
+  <li><strong style="color:var(--red)">RISK</strong> — Trigger AML, OFAC, and sanctions screening before any state transition that creates payment, acceptance, or guarantee obligation, and capture the reason in the compliance audit trail.</li>
+  <li><strong style="color:var(--blue)">T9</strong> — Are we implementing coexistence (MT ↔ MX translation on the fly) or pure MX internal processing?</li>
+</ul>
+<div class="md-h2">§3 · Resolved Assumptions</div>
+<div class="md-code">ASSUMED: Spring Boot 3.5 + Java 21 (from constitution.md)
+ASSUMED: Kafka for all domain events
+ASSUMED: PostgreSQL for transactional data (dev); Oracle in prod
+ASSUMED: UTC for all timestamps; display in local timezone
+ASSUMED: ${prod.rules} is the governing ruleset (non-negotiable)</div>`;
+}
+
+function genPlan(p) {
+  const prod = PRODUCTS[p];
+  return `<div class="md-h1">plan.md — Architecture Blueprint for ${prod.name}</div>
+<div class="md-p"><span class="md-badge badge-tech">ARCH</span> Technical design derived from specify.md. Input to tasks.md generation.</div>
+<hr class="md-rule"/>
+<div class="md-h2">§1 · Service Decomposition</div>
+<div class="md-code">${prod.code}-service/
+├── api/                    # OpenAPI 3.1 contract (code-first generation)
+│   └── ${prod.code.toLowerCase()}-openapi.yaml
+├── domain/
+│   ├── model/              # @Entity classes, FSM enums
+│   ├── events/             # Domain events (Kafka topics)
+│   └── service/            # Business logic, rule enforcement
+├── infrastructure/
+│   ├── swift/              # MT message adapters
+│   ├── mx/                 # ISO 20022 MX canonical mapping layer
+│   ├── persistence/        # JPA repositories
+│   └── messaging/          # Kafka producers/consumers
+├── application/
+│   └── usecase/            # Application services (use-case orchestrators)
+└── web/
+    └── rest/               # REST controllers (thin, delegate to use-cases)
+
+Shared services to consider:
+  lc-workflow-service, document-examination-service,
+  compliance-gateway-service, messaging-adapter-service</div>
+<div class="md-h2">§2 · API Contracts (OpenAPI 3.1)</div>
+<div class="md-code">POST   /api/v1/${prod.code.toLowerCase()}          # Create new ${prod.name}
+GET    /api/v1/${prod.code.toLowerCase()}/{ref}    # Get by reference number
+PUT    /api/v1/${prod.code.toLowerCase()}/{ref}/amend  # Amendment workflow
+POST   /api/v1/${prod.code.toLowerCase()}/{ref}/docs   # Submit documents
+POST   /api/v1/${prod.code.toLowerCase()}/{ref}/examine # Trigger doc examination
+POST   /api/v1/${prod.code.toLowerCase()}/{ref}/close  # Close/cancel</div>
+<div class="md-h2">§3 · State Machine Design</div>
+<div class="md-code">enum ${prod.code}Status {
+    DRAFT → ISSUED → ADVISED → 
+    DOCS_PRESENTED → UNDER_EXAMINATION →
+    COMPLYING_DOCS | DISCREPANT_DOCS →
+    HONOURED | REFUSED | AMENDED | CANCELLED
+}</div>
+<div class="md-h2">§4 · Kafka Topics</div>
+<div class="md-code">dtf.${prod.code.toLowerCase()}.issued       # Triggers advising bank notification
+dtf.${prod.code.toLowerCase()}.amended      # Broadcasts amendment to all parties
+dtf.${prod.code.toLowerCase()}.docs-received # Triggers 5-day examination timer
+dtf.${prod.code.toLowerCase()}.examined     # Complying or discrepant result
+dtf.${prod.code.toLowerCase()}.honoured     # Payment/acceptance confirmed
+dtf.${prod.code.toLowerCase()}.dead-letter # DLQ for failed parses / retries (must be monitored)
+dtf.compliance.screening-requested        # AML / sanctions checks
+dtf.compliance.screening-result           # Screening outcome
+dtf.document.ocr-completed                # OCR extraction available for review
+dtf.audit.trail                           # All state changes (append-only)</div>
+<div class="md-h2">§5 · Resilience and Idempotency</div>
+<ul class="md-ul">
+  <li>Use Kafka DLQs for failed SWIFT parses, invalid document sets, and poison messages; retain retry metadata and dead-letter reasons for operator triage.</li>
+  <li>Apply Resilience4j circuit breakers, retries with backoff, and timeouts for Core Banking and external AML/KYC calls to prevent cascading failure.</li>
+  <li>Implement idempotency using a <span class="md-inline">processed_messages</span> table or Redis lock/key store keyed by SWIFT message reference, bank reference, and event ID to prevent duplicate ledger effects.</li>
+  <li>All consumers must be safe to replay and must reconcile duplicates before state transitions are committed.</li>
+</ul>
+<div class="md-h2">§6 · Database Schema (Flyway V1)</div>
+<div class="md-code">V1__create_${prod.code.toLowerCase()}_tables.sql:
+  ${prod.code.toLowerCase()}_transaction (ref, applicant_id, beneficiary_id,
+    amount, currency, expiry_date, expiry_place, status,
+    created_at, created_by, updated_at, updated_by)
+  ${prod.code.toLowerCase()}_document (id, transaction_ref, doc_type, 
+    filename, blob_url, examined_at, examined_by, is_complying)
+  ${prod.code.toLowerCase()}_discrepancy (id, transaction_ref, code,
+    description, notified_at, waived_by, waived_at)</div>`;
+}
+
+function genTasks(p) {
+  const prod = PRODUCTS[p];
+  return `<div class="md-h1">tasks.md — Execution Backlog for ${prod.name}</div>
+<div class="md-p"><span class="md-badge badge-tech">SPRINT READY</span> Atomic AI-agent tasks. Each maps to one ADO work item. Format: <span class="md-inline">Resolves AB#NNN</span></div>
+<hr class="md-rule"/>
+<div class="md-h2">Epic 1 · Core Domain Model</div>
+<ul class="md-ul">
+  <li><span class="md-badge badge-swift">TASK-01</span> [Complexity: S] Create <span class="md-inline">${prod.code}Transaction</span> entity with all ${prod.rules} mandatory fields and Flyway V1 migration script. <strong>Depends on:</strong> none. <strong>Blocks:</strong> TASK-02, TASK-03, TASK-04.</li>
+  <li><span class="md-badge badge-swift">TASK-02</span> [Complexity: M] Implement <span class="md-inline">${prod.code}Status</span> FSM enum with valid transitions enforced via Spring State Machine. <strong>Depends on:</strong> TASK-01. <strong>Blocks:</strong> TASK-05, TASK-13.</li>
+  <li><span class="md-badge badge-swift">TASK-03</span> [Complexity: M] Create <span class="md-inline">Document</span> and <span class="md-inline">Discrepancy</span> child entities with JPA relationships. <strong>Depends on:</strong> TASK-01. <strong>Blocks:</strong> TASK-06, TASK-07.</li>
+  <li><span class="md-badge badge-swift">TASK-04</span> [Complexity: S] Write JPA repository with custom queries for status-based lookups and expiry date monitoring. <strong>Depends on:</strong> TASK-01. <strong>Blocks:</strong> TASK-08, TASK-13.</li>
+</ul>
+<div class="md-h2">Epic 2 · ${prod.rules} Compliance Engine</div>
+<ul class="md-ul">
+  <li><span class="md-badge badge-ucp">TASK-05</span> [Complexity: M] Implement DocumentExaminationService enforcing 5-banking-day timer (${prod.rules} Art. 14 / Art. 15). <strong>Depends on:</strong> TASK-02, TASK-04. <strong>Blocks:</strong> TASK-15.</li>
+  <li><span class="md-badge badge-ucp">TASK-06</span> [Complexity: M] Build DiscrepancyChecker: validate each document type against LC/Guarantee terms. <strong>Depends on:</strong> TASK-03. <strong>Blocks:</strong> TASK-07, TASK-16.</li>
+  <li><span class="md-badge badge-ucp">TASK-07</span> [Complexity: L] Implement WaiverService with 4-eyes approval workflow for discrepancy waiver. <strong>Depends on:</strong> TASK-06. <strong>Blocks:</strong> TASK-16.</li>
+  <li><span class="md-badge badge-ucp">TASK-08</span> [Complexity: S] Create ExpiryMonitor scheduler — daily job scanning for expiring transactions. <strong>Depends on:</strong> TASK-04. <strong>Blocks:</strong> TASK-15.</li>
+  <li><span class="md-badge badge-ucp">TASK-09</span> [Complexity: M] Create OCR ingestion endpoint and validation for malformed/null fields, with human-in-the-loop fallback for low-confidence extraction.</li>
+  <li><span class="md-badge badge-ucp">TASK-10</span> [Complexity: M] Implement Incoterms® 2020 and insurance-document validation for CIF/CIP / FOB risk-transfer logic.</li>
+</ul>
+<div class="md-h2">Epic 3 · SWIFT Adapter Layer</div>
+<ul class="md-ul">
+  <li><span class="md-badge badge-swift">TASK-11</span> [Complexity: M] Parse inbound ${prod.swift[0]} — map to domain model with full field validation. <strong>Depends on:</strong> TASK-02, TASK-04. <strong>Blocks:</strong> TASK-13, TASK-15.</li>
+  <li><span class="md-badge badge-swift">TASK-12</span> [Complexity: M] Generate outbound ${prod.swift[1] || prod.swift[0]} from domain state. <strong>Depends on:</strong> TASK-02. <strong>Blocks:</strong> TASK-15.</li>
+  <li><span class="md-badge badge-swift">TASK-13</span> [Complexity: M] Implement SWIFT message store (idempotent inbound deduplication). <strong>Depends on:</strong> TASK-11. <strong>Blocks:</strong> TASK-14, TASK-15.</li>
+  <li><span class="md-badge badge-swift">TASK-14</span> [Complexity: S] Write SWIFT adapter integration tests against mock SWIFT gateway. <strong>Depends on:</strong> TASK-11, TASK-12. <strong>Blocks:</strong> TASK-15.</li>
+  <li><span class="md-badge badge-swift">TASK-15</span> [Complexity: M] Implement MT700 ↔ ISO 20022 (MX) translation utility and canonical data mapping for coexistence mode.</li>
+</ul>
+<div class="md-h2">Epic 4 · REST API & Events</div>
+<ul class="md-ul">
+  <li><span class="md-badge badge-tech">TASK-16</span> [Complexity: M] Implement all REST endpoints from plan.md OpenAPI contract (contract-first). <strong>Depends on:</strong> TASK-02, TASK-04. <strong>Blocks:</strong> TASK-18.</li>
+  <li><span class="md-badge badge-tech">TASK-17</span> [Complexity: M] Configure Kafka producers, DLQ handling, and idempotent consumers for all domain events in plan.md topics. <strong>Depends on:</strong> TASK-13. <strong>Blocks:</strong> TASK-18.</li>
+  <li><span class="md-badge badge-tech">TASK-18</span> [Complexity: L] Write integration tests: end-to-end create → examine → honour happy path with DLQ, OCR, AML, and retry coverage. <strong>Depends on:</strong> TASK-05, TASK-11, TASK-16, TASK-17. <strong>Blocks:</strong> none.</li>
+  <li><span class="md-badge badge-tech">TASK-19</span> [Complexity: L] Write compliance tests: verify all ${prod.rules} mandatory rules, AML/OFAC triggers, and auditability are enforced. <strong>Depends on:</strong> TASK-06, TASK-07, TASK-10. <strong>Blocks:</strong> release gate.</li>
+</ul>`;
+}
+
+function genImplement(p) {
+  const prod = PRODUCTS[p];
+  return `<div class="md-h1">implement.md — AI Agent Prompts for ${prod.name}</div>
+<div class="md-p"><span class="md-badge badge-tech">COPILOT</span><span class="md-badge badge-ucp">CLAUDE</span> Exact prompts for coding agents. Feed these sequentially. Each prompt references prior outputs.</div>
+<hr class="md-rule"/>
+<div class="md-h2">§1 · Agent Initialization Prompt</div>
+<div class="md-code">SYSTEM: You are a senior DTF Java engineer specialising in 
+${prod.rules}. All code must be Java 21, Spring Boot 3.5,
+jakarta.* namespacing. Read constitution.md and specify.md
+before generating any code. 
+
+CONTEXT: Building ${prod.name} (${prod.code}) microservice.
+SWIFT messages in scope: ${prod.swift.slice(0,3).join(', ')}.
+Governing rules: ${prod.rules} — non-negotiable.
+Enterprise role: act as an ICC-aware Java architect with ISBP 745 and ISO 20022 discipline.
+Do not hallucinate trade law, OCR thresholds, or AML provider behavior.</div>
+<div class="md-h2">§2 · TASK-01 Prompt — Entity Generation</div>
+<div class="md-code">Generate the @Entity class for ${prod.code}Transaction.
+Requirements:
+- All mandatory ${prod.rules} fields (see specify.md §4)
+- Optimistic locking with @Version
+- Audit fields via @EntityListeners(AuditingEntityListener.class)
+- Flyway V1 migration SQL script
+- Full Javadoc citing relevant ${prod.rules} articles
+Constraints:
+- DO NOT use floating-point numbers for currency or amounts.
+- DO NOT bypass the state machine for status updates.
+- DO NOT generate mock UCP or SWIFT rules.
+- No Lombok. Explicit getters/setters for JPA.</div>
+<div class="md-h2">§3 · TASK-05 Prompt — Examination Engine</div>
+<div class="md-code">Implement DocumentExaminationService.
+Rules enforced:
+- 5-banking-day countdown from presentation date
+- BusinessDayCalculator (exclude weekends + bank holidays)
+- On day 5 auto-trigger: COMPLYING or DISCREPANT status
+- Discrepancy notice via Kafka: dtf.${prod.code.toLowerCase()}.examined
+- Unit tests: mock calendar, verify timer boundaries
+- Apply ISBP 745 exact-description matching and Incoterms® 2020 validation rules
+Reference: ${prod.ucp[2] ? prod.ucp[2].art : 'UCP Art.14'} — ${prod.ucp[2] ? prod.ucp[2].desc : '5-day examination standard'}</div>
+<div class="md-h2">§4 · TASK-09 Prompt — SWIFT Parser</div>
+<div class="md-code">Parse inbound ${prod.swift[0]} SWIFT message.
+Output: ${prod.code}Transaction domain object.
+Validation:
+- All mandatory tags present (per ISO 15022)
+- Amount format: 15d (max 15 digits, decimal)
+- Date fields: YYMMDD → LocalDate
+- Reject and dead-letter if mandatory tag missing
+- Preserve trace context in Kafka headers and log correlation IDs
+Test: provide sample ${prod.swift[0]} in test/resources/swift/</div>
+<div class="md-h2">§5 · Few-Shot Pattern Example</div>
+<div class="md-code">Example controller pattern:
+@PostMapping("/documents")
+public ResponseEntity&lt;DocumentReceipt&gt; submitDocuments(@Valid @RequestBody DocumentSubmissionRequest request) {
+  return ResponseEntity.accepted().body(documentService.submit(request));
+}
+
+Example listener pattern:
+@KafkaListener(topics = "dtf.${prod.code.toLowerCase()}.examined")
+public void onExamined(ExaminedEvent event) { ... }
+
+Example compliance guard:
+if (screeningResult.isHit()) {
+  throw new ComplianceException("AML/HIT blocks state transition");
+}</div>
+<div class="md-h2">§6 · Validation Script</div>
+<div class="md-code">#!/bin/bash
+# Run after each implement cycle
+mvn test -pl ${prod.code.toLowerCase()}-service
+mvn verify -Pintegration-tests
+# Compliance gate: all ${prod.rules} tests must pass
+mvn test -Dtest="${prod.code}ComplianceTest"</div>`;
+}
+
+function genChecklist(p) {
+  const prod = PRODUCTS[p];
+  return `<div class="md-h1">checklist.md — Definition of Done for ${prod.name}</div>
+<div class="md-p"><span class="md-badge badge-ucp">COMPLIANCE GATE</span> All items must pass before merging to main. ADO pipeline enforces this checklist.</div>
+<hr class="md-rule"/>
+<div class="md-h2">§1 · ${prod.rules} Compliance Checklist</div>
+<ul class="md-ul">
+  ${prod.ucp.map(u => `<li>☐ ${u.art} — ${u.desc} — test exists and passes</li>`).join('')}
+  <li>☐ 5-banking-day examination timer verified with unit + integration tests</li>
+  <li>☐ ISBP 745 exact-match and discrepancy rules verified in unit tests</li>
+  <li>☐ Incoterms® 2020 matrix and CIF/CIP insurance logic pass</li>
+  <li>☐ Discrepancy notice workflow tested end-to-end</li>
+  <li>☐ All mandatory SWIFT message fields and ISO 20022 MX mappings validated on parse</li>
+</ul>
+<div class="md-h2">§2 · Technical Quality Gates</div>
+<ul class="md-ul">
+  <li>☐ Test coverage ≥ 80% (JaCoCo gate in Maven)</li>
+  <li>☐ No <span class="md-inline">javax.*</span> imports (jakarta.* only)</li>
+  <li>☐ All DB changes via Flyway versioned migration (no schema.sql)</li>
+  <li>☐ OpenAPI spec validated against contract tests (Spring Cloud Contract)</li>
+  <li>☐ No hardcoded amounts, currencies, or bank codes</li>
+  <li>☐ All monetary calculations use <span class="md-inline">BigDecimal</span> (no float/double)</li>
+  <li>☐ Audit trail: every state transition has log entry with user + timestamp</li>
+  <li>☐ Kafka topics created with correct retention and partition count</li>
+  <li>☐ SAST/DAST scans (SonarQube, Checkmarx, or equivalent) pass with zero critical/high vulnerabilities</li>
+  <li>☐ Dependency and CVE scans are green for all production artifacts before merge</li>
+</ul>
+<div class="md-h2">§3 · BDD / Compliance Evidence</div>
+<ul class="md-ul">
+  <li>☐ Gherkin scenarios exist for the UCP 600 / URDG 758 / URC 522 rules in scope and map directly to the business requirements in specify.md</li>
+  <li>☐ BDD tests cover happy path, SWIFT NACKs, force majeure, sanctions screening hits, OCR low-confidence handling, and duplicate-message idempotency</li>
+  <li>☐ Compliance evidence from Cucumber reports is retained for audit review</li>
+  <li>☐ AML and OFAC screening must prevent transitions to ISSUED or SETTLED when a screening hit is returned</li>
+</ul>
+<div class="md-h2">§3 · ADO Pipeline Gates</div>
+<div class="md-code"># azure-pipelines.yml compliance stage
+- stage: ComplianceGate
+  jobs:
+  - job: UCPComplianceTests
+    steps:
+    - script: mvn test -Dtest="${prod.code}ComplianceTest"
+    - script: mvn verify -Pintegration-tests
+    - task: PublishTestResults@2
+  - job: StaticAnalysis
+    steps:
+    - script: mvn spotbugs:check
+    - script: mvn dependency:check  # OWASP CVE scan
+    
+# Commit message format required:
+# feat(${prod.code.toLowerCase()}): <description> Resolves AB#NNN</div>
+<div class="md-h2">§4 · Sign-off</div>
+<ul class="md-ul">
+  <li>☐ Code review by at least 2 engineers</li>
+  <li>☐ Compliance review by Trade Finance SME</li>
+  <li>☐ Security review (mTLS, OAuth2 scopes checked)</li>
+  <li>☐ spec.md and plan.md updated to reflect any implementation changes</li>
+</ul>`;
+}
+
+function getSwiftDesc(msg) {
+  const map = {
+    MT700: "Issue of a Documentary Credit",
+    MT701: "Issue of a Documentary Credit (continuation)",
+    MT705: "Pre-Advice of a Documentary Credit",
+    MT707: "Amendment to a Documentary Credit",
+    MT710: "Advice of a Third Bank's Documentary Credit",
+    MT711: "Advice of a Third Bank's DC (continuation)",
+    MT720: "Transfer of a Documentary Credit",
+    MT730: "Acknowledgement",
+    MT734: "Advice of Refusal",
+    MT742: "Reimbursement Claim",
+    MT750: "Advice of Discrepancy",
+    MT752: "Authorisation to Pay / Accept / Negotiate",
+    MT760: "Guarantee / Standby Letter of Credit",
+    MT767: "Amendment to a Guarantee / Standby LC",
+    MT768: "Acknowledgement of a Guarantee Message",
+    MT769: "Advice of Reduction or Release",
+    MT786: "Advice Under a Guarantee",
+    MT799: "Free Format Message",
+    MT400: "Advice of Payment",
+    MT410: "Acknowledgement",
+    MT412: "Advice of Acceptance",
+    MT416: "Advice of Non-Payment / Non-Acceptance",
+    MT420: "Tracer",
+    MT422: "Advice of Fate and Request for Instructions",
+    MT450: "Credit Advice",
+  };
+  return map[msg] || "SWIFT message";
+}
+
+// ────────────────────────────────────────────────────────────
+//  META PANEL GENERATORS
+// ────────────────────────────────────────────────────────────
+function renderMeta(p, stepId) {
+  const prod = PRODUCTS[p];
+  const panel = document.getElementById('meta-panel');
+  let html = '';
+
+  // UCP Articles
+  html += `<div class="meta-block">
+    <div class="meta-block-title">⬡ Borg — ${prod.rules} Articles</div>
+    <div class="ucp-ref">
+      ${prod.ucp.map(u => `<div class="ucp-row"><span class="ucp-art">${u.art}</span><span class="ucp-desc">${u.desc}</span></div>`).join('')}
+    </div>
+  </div>`;
+
+  // SWIFT messages
+  html += `<div class="meta-block">
+    <div class="meta-block-title">⚡ SWIFT Messages</div>
+    <div>${prod.swift.map(s => `<span class="swift-chip">${s}</span>`).join('')}</div>
+  </div>`;
+
+  // Agent prompt
+  html += `<div class="meta-block">
+    <div class="meta-block-title">🤖 AI Agent Prompt</div>
+    <div class="agent-prompt-label">Feed to GitHub Copilot / Claude Code:</div>
+    <div class="agent-prompt">${prod.agentPrompt}</div>
+  </div>`;
+
+  // Progress
+  html += `<div class="meta-block">
+    <div class="meta-block-title">📊 SDD Progress</div>
+    <div class="progress-wrap">
+      ${Object.entries(prod.progress).map(([k,v]) => `
+      <div class="prog-row">
+        <span class="prog-label">${k.charAt(0).toUpperCase()+k.slice(1)}</span>
+        <div class="prog-bar-bg"><div class="prog-bar" style="width:${v}%"></div></div>
+        <span class="prog-val">${v}%</span>
+      </div>`).join('')}
+    </div>
+  </div>`;
+
+  // Lifecycle flow
+  html += `<div class="meta-block">
+    <div class="meta-block-title">🔄 Product Lifecycle</div>
+    ${prod.flow.map((f,i) => `<div class="flow-step"><div class="flow-num">${i+1}</div><div class="flow-text">${f}</div></div>`).join('')}
+  </div>`;
+
+  html += `<button class="generate-btn" onclick="copyContent()">⬇ Export ${STEPS[stepId].file}</button>`;
+
+  panel.innerHTML = html;
+}
+
+// ────────────────────────────────────────────────────────────
+//  RENDER
+// ────────────────────────────────────────────────────────────
+function renderContent(p, stepId) {
+  const prod = PRODUCTS[p];
+  const step = STEPS[stepId];
+  const editorBody = document.getElementById('editor-body');
+  document.getElementById('file-tab-name').textContent = step.file;
+  document.getElementById('editor-path').textContent = `.docs/${p}/${step.file}`;
+  document.getElementById('status-product').textContent = `${p} · ${prod.name}`;
+  document.getElementById('status-step').textContent = step.file;
+  document.getElementById('status-articles').textContent = prod.articles ? prod.articles.slice(0,2).join(' · ') : '';
+
+  const generators = [genConstitution, genSpecify, genClarify, genPlan, genTasks, genImplement, genChecklist];
+  editorBody.innerHTML = generators[stepId](p);
+  renderMeta(p, stepId);
+}
+
+function selectProduct(code) {
+  currentProduct = code;
+  document.querySelectorAll('.product-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.product === code);
+  });
+  renderContent(currentProduct, currentStep);
+}
+
+function selectStep(id) {
+  currentStep = id;
+  for (let i = 0; i < STEPS.length; i++) {
+    const el = document.getElementById(`step-${i}`);
+    if (!el) continue;
+    el.classList.remove('active', 'done');
+    if (i < id) el.classList.add('done');
+    else if (i === id) el.classList.add('active');
+    // Update step-num inner for done steps
+    const numEl = el.querySelector('.step-num');
+    if (i < id) numEl.textContent = '✓';
+    else numEl.textContent = String(i + 1);
+  }
+  renderContent(currentProduct, currentStep);
+}
+
+function copyContent() {
+  const el = document.getElementById('editor-body');
+  const text = el.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+
+// ── INIT
+renderContent(currentProduct, currentStep);
+</script>
+</body>
+</html>
